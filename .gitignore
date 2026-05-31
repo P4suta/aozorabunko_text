@@ -1,7 +1,14 @@
 *~
 #*#
 
-# temporarily dirs
-aozora_zip/
-aozorabunko/
-vendor/
+# Go build artifacts
+/extzip
+/extzip.exe
+
+# cloned source data (created by the workflow at runtime)
+/aozorabunko/
+
+# local tool config (mise) — not part of the repo
+/.mise.toml
+/mise.toml
+/.tool-versions

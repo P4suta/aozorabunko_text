@@ -30,7 +30,16 @@ $ git clone --depth 1 https://github.com/aozorahack/aozorabunko_text.git
 
 https://github.com/aozorabunko/aozorabunko の中身を取得して、cardsディレクトリ内にあるzipファイルの中からtxtファイルを取り出して、同様の階層のディレクトリ内に保存しています。
 
-動作はCircleCI上で行っており、1日1回バッチで動作します。
+抽出処理は Go (`cmd/extzip`、標準ライブラリ `archive/zip` のみ・外部依存なし) で実装しており、GitHub Actions (`.github/workflows/update_daily.yml`) 上で1日1回バッチ動作します。手動実行したい場合は Actions の "Update works" ワークフローを `workflow_dispatch` で起動できます。
+
+ローカルで実行する場合:
+
+```console
+$ git clone --depth 1 https://github.com/aozorabunko/aozorabunko.git
+$ go run ./cmd/extzip -src aozorabunko -dest .
+```
+
+テキストは Shift_JIS のまま無変換でコピーされ、既に存在する出力ファイルはスキップされます。
 
 ## 権利関係
 
