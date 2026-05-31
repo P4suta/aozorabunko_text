@@ -37,7 +37,7 @@ import (
 type meta struct {
 	author string // 姓+名
 	title  string // 作品名
-	kind   string // 文字遣い種別 (used to disambiguate same-title variants)
+	kind   string // 文字遣い種別
 }
 
 type workKey struct{ person, work int }

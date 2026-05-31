@@ -1,16 +1,8 @@
-*~
-#*#
-
-# Go build artifacts
+# build artifacts
 /aozora
 /aozora.exe
 
-# fetched at runtime by the workflow
+# fetched at runtime
 /aozorabunko/
 /list.zip
 /list_person_all_extended_utf8.csv
-
-# local tool config (mise) — not part of the repo
-/mise.toml
-/.mise.toml
-/.tool-versions
