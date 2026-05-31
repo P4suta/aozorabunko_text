@@ -19,12 +19,16 @@ jobs:
         go-version: 'stable'
     - name: checkout aozorabunko source
       run: git clone --depth 1 https://github.com/aozorabunko/aozorabunko.git
-    - name: extract txt from zips
-      run: go run ./cmd/extzip -src aozorabunko -dest .
+    - name: fetch metadata
+      run: |
+        curl -sSL -o list.zip https://www.aozora.gr.jp/index_pages/list_person_all_extended_utf8.zip
+        unzip -o list.zip
+    - name: build corpus
+      run: go run ./cmd/aozora -src aozorabunko -meta list_person_all_extended_utf8.csv -dest .
     - name: commit & push
       run: |
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git config user.name "github-actions[bot]"
-        git add --all cards
-        git commit -m "[ci skip] update texts $(date '+%Y%m%d')" || echo "nothing to commit"
+        git add -A
+        git commit -m "[ci skip] update corpus $(date '+%Y%m%d')" || echo "nothing to commit"
         git push origin HEAD:master

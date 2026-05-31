@@ -1,3 +1,5 @@
 module github.com/P4suta/aozorabunko_text
 
-go 1.22
+go 1.25.0
+
+require golang.org/x/text v0.37.0

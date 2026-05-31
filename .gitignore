@@ -2,13 +2,15 @@
 #*#
 
 # Go build artifacts
-/extzip
-/extzip.exe
+/aozora
+/aozora.exe
 
-# cloned source data (created by the workflow at runtime)
+# fetched at runtime by the workflow
 /aozorabunko/
+/list.zip
+/list_person_all_extended_utf8.csv
 
 # local tool config (mise) — not part of the repo
-/.mise.toml
 /mise.toml
+/.mise.toml
 /.tool-versions
