@@ -1,0 +1,20 @@
+---
+# The one status check branch protection requires,
+# named the same in every P4suta repository.
+# No other check runs on pull requests here,
+# so the job has nothing to wait for.
+name: required
+
+on:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  required:
+    name: required
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: No other checks run on pull requests here
+        run: echo "nothing to aggregate"
