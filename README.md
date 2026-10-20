@@ -1,46 +1,20 @@
 # aozorabunko_text
 
-[青空文庫](https://www.aozora.gr.jp) で公開されているテキストを、**人間が読めるパス**と **UTF-8** で再構成したミラーです。
+A UTF-8 mirror of Aozora Bunko texts, arranged by author and title.
 
-```
-作品/
-├─ 夏目漱石/
-│  ├─ 吾輩は猫である.txt
-│  └─ こころ.txt
-├─ 芥川龍之介/
-│  ├─ 羅生門.txt
-│  └─ 蜘蛛の糸.txt
-└─ …
+Read [Kokoro](作品/夏目漱石/こころ.txt), or browse the [works](作品/) directory.
+
+```sh
+cat '作品/夏目漱石/こころ.txt'
 ```
 
-- `作品/` … 著者名・作品名でマッチできた本編テキスト（UTF-8）
-- `_unmatched/` … メタデータに対応が見つからなかったもの（ID パスのまま）
-- `_decode_errors/` … Shift_JIS のデコードに問題があったもの（隔離）
+See the [usage guide](docs/usage.md) for the directory layout, checks, and rebuild commands.
 
-## 動作のしくみ
+Weekly refreshes produce signed draft pull requests for review.
+The **Update works** workflow also supports manual refreshes.
 
-[aozorabunko/aozorabunko](https://github.com/aozorabunko/aozorabunko) の中身と
-青空文庫のメタデータ（`list_person_all_extended_utf8.csv`）を取得し、各作品の zip から
-本編テキストを取り出して UTF-8 に変換し、著者名・作品名のパスに保存しています。
+## Usage terms
 
-抽出処理は Go (`cmd/aozora`) で実装しており、外部依存はテキスト変換用の
-[`golang.org/x/text`](https://pkg.go.dev/golang.org/x/text) のみです。
-GitHub Actions (`.github/workflows/update_daily.yml`) 上で1日1回バッチ動作し、
-手動実行したい場合は Actions の "Update works" ワークフローを `workflow_dispatch` で起動できます。
-
-ローカルで実行する場合:
-
-```console
-$ git clone --depth 1 https://github.com/aozorabunko/aozorabunko.git
-$ curl -sSL -o list.zip https://www.aozora.gr.jp/index_pages/list_person_all_extended_utf8.zip && unzip -o list.zip
-$ go run ./cmd/aozora -src aozorabunko -meta list_person_all_extended_utf8.csv -dest .
-```
-
-既に存在する出力ファイルはスキップされるため、再実行は差分のみになります。
-
-## 権利関係
-
-`作品/` 内のファイルは、[「青空文庫収録ファイルの取り扱い規準」](https://www.aozora.gr.jp/guide/kijyunn.html)
-の元でご利用ください。本リポジトリは、これらの著作物を文字コード変換・再配置した非公式ミラーです。
-著作権保護期間が終了しておらず、クリエイティブ・コモンズ・ライセンス等による許諾の元で
-再配布されているファイルも含まれています。ご注意ください。
+This unofficial mirror preserves the works' original notices.
+Use each work under its stated permissions and the [Aozora Bunko usage rules](https://www.aozora.gr.jp/guide/kijyunn.html).
+Some works remain under copyright and carry distinct permissions.
