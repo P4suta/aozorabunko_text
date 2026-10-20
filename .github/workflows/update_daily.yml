@@ -42,10 +42,12 @@ jobs:
         run: |
           git clone --depth 1 --filter=blob:none --sparse https://github.com/aozorabunko/aozorabunko.git aozorabunko
           git -C aozorabunko sparse-checkout set --no-cone '/cards/**/*.zip'
+          git -C aozorabunko rev-parse HEAD
       - name: Fetch metadata
         run: |
           curl --fail --location --retry 3 --connect-timeout 10 --max-time 120 -o list.zip https://www.aozora.gr.jp/index_pages/list_person_all_extended_utf8.zip
           unzip -o list.zip
+          sha256sum list_person_all_extended_utf8.csv
       - name: Build corpus
         run: go run ./cmd/aozora -src aozorabunko -meta list_person_all_extended_utf8.csv -dest . -workers 2
       - name: Propose changed texts
