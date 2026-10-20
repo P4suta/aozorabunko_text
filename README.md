@@ -10,8 +10,9 @@ cat '作品/夏目漱石/こころ.txt'
 
 See the [usage guide](docs/usage.md) for the directory layout, checks, and rebuild commands.
 
-Weekly refreshes produce signed draft pull requests for review.
-The **Update works** workflow also supports manual refreshes.
+The original source repository now returns HTTP 404, so automatic refreshes have stopped.
+The stored texts remain available.
+See [source recovery](https://github.com/P4suta/aozorabunko_text/issues/9) for future updates.
 
 ## Usage terms
 
