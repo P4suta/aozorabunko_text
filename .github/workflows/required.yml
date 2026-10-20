@@ -1,20 +1,38 @@
----
-# The one status check branch protection requires,
-# named the same in every P4suta repository.
-# No other check runs on pull requests here,
-# so the job has nothing to wait for.
 name: required
 
 on:
   pull_request:
+  workflow_dispatch:
 
-permissions: {}
+permissions:
+  contents: read
+
+concurrency:
+  group: required-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   required:
     name: required
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
+    env:
+      GOTOOLCHAIN: local
+      GOMAXPROCS: '2'
+      GOFLAGS: '-mod=readonly -p=2'
     steps:
-      - name: No other checks run on pull requests here
-        run: echo "nothing to aggregate"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          sparse-checkout: cmd
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: '1.27.3'
+      - name: Check module integrity
+        run: go mod verify
+      - name: Check source
+        run: go vet ./...
+      - name: Compile and run tests
+        run: go test ./...
+      - name: Audit reachable dependencies
+        run: go tool govulncheck ./...

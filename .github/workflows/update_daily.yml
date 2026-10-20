@@ -2,33 +2,92 @@ name: Update works
 
 on:
   schedule:
-    - cron:  '0 0 * * *'
+    - cron: '0 0 * * 1'
   workflow_dispatch:
+    inputs:
+      dry-run:
+        description: Generate the corpus without proposing changes
+        type: boolean
+        default: false
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: corpus-refresh
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GOTOOLCHAIN: local
+      GOMAXPROCS: '2'
+      GOFLAGS: '-mod=readonly -p=2'
+    outputs:
+      operation: ${{ steps.proposal.outputs.pull-request-operation }}
     steps:
-    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-    - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
-      with:
-        go-version: 'stable'
-    - name: checkout aozorabunko source
-      run: git clone --depth 1 https://github.com/aozorabunko/aozorabunko.git
-    - name: fetch metadata
-      run: |
-        curl -sSL -o list.zip https://www.aozora.gr.jp/index_pages/list_person_all_extended_utf8.zip
-        unzip -o list.zip
-    - name: build corpus
-      run: go run ./cmd/aozora -src aozorabunko -meta list_person_all_extended_utf8.csv -dest .
-    - name: commit & push
-      run: |
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git config user.name "github-actions[bot]"
-        git add -A
-        git commit -m "[ci skip] update corpus $(date '+%Y%m%d')" || echo "nothing to commit"
-        git push origin HEAD:master
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: master
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: '1.27.3'
+      - name: Fetch upstream text archives
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/aozorabunko/aozorabunko.git aozorabunko
+          git -C aozorabunko sparse-checkout set --no-cone '/cards/**/*.zip'
+      - name: Fetch metadata
+        run: |
+          curl --fail --location --retry 3 --connect-timeout 10 --max-time 120 -o list.zip https://www.aozora.gr.jp/index_pages/list_person_all_extended_utf8.zip
+          unzip -o list.zip
+      - name: Build corpus
+        run: go run ./cmd/aozora -src aozorabunko -meta list_person_all_extended_utf8.csv -dest . -workers 2
+      - name: Propose changed texts
+        id: proposal
+        if: ${{ !inputs.dry-run }}
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          add-paths: |
+            作品/**
+            _unmatched/**
+            _decode_errors/**
+          branch: automation/corpus-refresh
+          base: master
+          sign-commits: true
+          delete-branch: true
+          draft: always-true
+          commit-message: 'chore(data): refresh Aozora corpus'
+          title: 'chore(data): refresh Aozora corpus'
+          body: |
+            Refresh the UTF-8 mirror from the upstream text archives and metadata.
+            Review changed works and their original usage terms before merging.
+
+            @coderabbitai ignore
+      - name: Verify proposal signature
+        if: ${{ steps.proposal.outputs.pull-request-number != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PROPOSAL_HEAD: ${{ steps.proposal.outputs.pull-request-head-sha }}
+        run: test "$(gh api "repos/$GH_REPO/commits/$PROPOSAL_HEAD" --jq '.commit.verification.verified')" = true
+
+  verify:
+    needs: build
+    if: ${{ needs.build.outputs.operation == 'created' || needs.build.outputs.operation == 'updated' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Dispatch required checks for the proposal
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run required.yml --repo "$GH_REPO" --ref automation/corpus-refresh
