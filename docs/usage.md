@@ -25,25 +25,26 @@ The vulnerability check uses the official tool pinned through `go.mod`.
 
 ## Rebuild the mirror
 
-Run these commands from the repository root.
+Use an existing local checkout of the original Aozora Bunko archive tree.
+Its `cards/` directory must contain the original text ZIP files.
+Expanded text files from other mirrors don't satisfy this input contract.
+The original GitHub source now returns HTTP 404.
+This repository no longer downloads it on a schedule or through Actions.
+
+Run these commands from the repository root after placing the archive tree at `../aozorabunko`.
 
 ```sh
-git clone --depth 1 --filter=blob:none --sparse https://github.com/aozorabunko/aozorabunko.git aozorabunko
-git -C aozorabunko sparse-checkout set --no-cone '/cards/**/*.zip'
 curl --fail --location -o list.zip https://www.aozora.gr.jp/index_pages/list_person_all_extended_utf8.zip
 unzip -o list.zip
-mise x -- go run ./cmd/aozora -src aozorabunko -meta list_person_all_extended_utf8.csv -dest . -workers 2
+mise x -- go run ./cmd/aozora -src ../aozorabunko -meta list_person_all_extended_utf8.csv -dest . -workers 2
 ```
 
 The converter reads the upstream archives and metadata, then converts the texts from Shift_JIS to UTF-8.
 It skips existing output files.
 
-## Refresh workflow
+## Source recovery
 
-The weekly job runs on Monday.
-Run **Update works** manually for an earlier refresh.
-Its `dry-run` input generates the corpus without opening a proposal.
-
-Changed output produces a signed draft on `automation/corpus-refresh`.
-The workflow checks the commit signature and dispatches the required converter checks for that branch.
-Review the data and its original usage terms before merging the draft.
+Automatic updates require a verified source for the original ZIP archives.
+[Issue 9](https://github.com/P4suta/aozorabunko_text/issues/9) tracks that work.
+The existing texts form a stored snapshot rather than a live mirror.
+Review each work's source and original usage terms before redistributing it.
