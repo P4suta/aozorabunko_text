@@ -27,7 +27,7 @@ jobs:
           sparse-checkout: cmd
       - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7
         with:
-          go-version: '1.27.3'
+          go-version: '1.27.4'
       - name: Check module integrity
         run: go mod verify
       - name: Check source
